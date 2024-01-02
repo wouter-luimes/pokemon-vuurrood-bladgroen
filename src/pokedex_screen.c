@@ -2703,7 +2703,64 @@ void DexScreen_PrintMonCategory(u8 windowId, u16 species, u8 x, u8 y)
     DexScreen_AddTextPrinterParameterized(windowId, FONT_SMALL, gText_PokedexPokemon, x, y, 0);
 }
 
-void DexScreen_PrintMonHeight(u8 windowId, u16 species, u8 x, u8 y)
+void DexScreen_PrintMonHeightMetric(u8 windowId, u16 species, u8 x, u8 y)
+{
+    u16 height;
+    u32 metres, decimetres;
+    const u8* labelText;
+    u8 buffer[32];
+    u8 i;
+    
+    species = SpeciesToNationalPokedexNum(species);
+    height = gPokedexEntries[species].height;
+    labelText = gText_HT;
+
+    i = 0;
+    buffer[i++] = EXT_CTRL_CODE_BEGIN;
+    buffer[i++] = EXT_CTRL_CODE_MIN_LETTER_SPACING;
+    buffer[i++] = 5;
+    buffer[i++] = CHAR_SPACE;
+    buffer[i++] = CHAR_SPACE;
+
+    if (DexScreen_GetSetPokedexFlag(species, FLAG_GET_CAUGHT, FALSE))
+    {
+        buffer[i++] = CHAR_SPACE;
+        height %= 1000;
+        metres = height / 10;
+        decimetres = height % 10;
+        if (metres >= 10)
+        {
+            buffer[i++] = metres / 10 + CHAR_0;
+            buffer[i++] = metres % 10 + CHAR_0;
+        }
+        else
+        {            
+            buffer[i++] = CHAR_SPACE;
+            buffer[i++] = metres + CHAR_0;
+        }
+        buffer[i++] = CHAR_COMMA;
+        buffer[i++] = decimetres + CHAR_0;
+    }
+    else
+    {
+        buffer[i++] = CHAR_QUESTION_MARK;
+        buffer[i++] = CHAR_QUESTION_MARK;
+        buffer[i++] = CHAR_QUESTION_MARK;
+        buffer[i++] = CHAR_COMMA;
+        buffer[i++] = CHAR_QUESTION_MARK;
+    }
+    buffer[i++] = EXT_CTRL_CODE_BEGIN;
+    buffer[i++] = EXT_CTRL_CODE_SHIFT_RIGHT;
+    buffer[i++] = 38;
+    buffer[i++] = CHAR_m;
+    buffer[i++] = EOS;
+
+    DexScreen_AddTextPrinterParameterized(windowId, FONT_SMALL, labelText, x, y, 0);
+    x += 34;
+    DexScreen_AddTextPrinterParameterized(windowId, FONT_SMALL, buffer, x, y, 0);
+}
+
+void DexScreen_PrintMonHeightImperial(u8 windowId, u16 species, u8 x, u8 y)
 {
     u16 height;
     u32 inches, feet;
@@ -2760,7 +2817,73 @@ void DexScreen_PrintMonHeight(u8 windowId, u16 species, u8 x, u8 y)
     DexScreen_AddTextPrinterParameterized(windowId, FONT_SMALL, buffer, x, y, 0);
 }
 
-void DexScreen_PrintMonWeight(u8 windowId, u16 species, u8 x, u8 y)
+void DexScreen_PrintMonWeightMetric(u8 windowId, u16 species, u8 x, u8 y)
+{
+    u16 weight;
+    u32 kilogram, hectogram;
+    const u8 * labelText;
+    u8 buffer[32];
+    u8 i;
+
+    species = SpeciesToNationalPokedexNum(species);
+    weight = gPokedexEntries[species].weight;
+    labelText = gText_WT;
+
+    i = 0;
+    buffer[i++] = EXT_CTRL_CODE_BEGIN;
+    buffer[i++] = EXT_CTRL_CODE_MIN_LETTER_SPACING;
+    buffer[i++] = 5;
+    buffer[i++] = CHAR_SPACE;
+    buffer[i++] = CHAR_SPACE;
+    
+    if (DexScreen_GetSetPokedexFlag(species, FLAG_GET_CAUGHT, FALSE))
+    {
+        weight %= 10000;
+        kilogram = weight / 10;
+        hectogram = weight % 10;
+        if (kilogram >= 100)
+        {
+            buffer[i++] = kilogram / 100 + CHAR_0;
+            kilogram %= 100;
+            buffer[i++] = kilogram / 10 + CHAR_0;
+            buffer[i++] = kilogram % 10 + CHAR_0;
+        }
+        else if (kilogram >= 10)
+        {
+            buffer[i++] = CHAR_SPACE;
+            buffer[i++] = kilogram / 10 + CHAR_0;
+            buffer[i++] = kilogram % 10 + CHAR_0;
+        }
+        else
+        {
+            buffer[i++] = CHAR_SPACE;
+            buffer[i++] = CHAR_SPACE;
+            buffer[i++] = kilogram + CHAR_0;
+        }
+        buffer[i++] = CHAR_COMMA;
+        buffer[i++] = hectogram + CHAR_0;
+    }
+    else
+    {
+        buffer[i++] = CHAR_QUESTION_MARK;
+        buffer[i++] = CHAR_QUESTION_MARK;
+        buffer[i++] = CHAR_QUESTION_MARK;
+        buffer[i++] = CHAR_COMMA;
+        buffer[i++] = CHAR_QUESTION_MARK;
+    }
+    buffer[i++] = EXT_CTRL_CODE_BEGIN;
+    buffer[i++] = EXT_CTRL_CODE_SHIFT_RIGHT;
+    buffer[i++] = 38;
+    buffer[i++] = CHAR_k;
+    buffer[i++] = CHAR_g;
+    buffer[i++] = EOS;
+
+    DexScreen_AddTextPrinterParameterized(windowId, FONT_SMALL, labelText, x, y, 0);
+    x += 34;
+    DexScreen_AddTextPrinterParameterized(windowId, FONT_SMALL, buffer, x, y, 0);
+}
+
+void DexScreen_PrintMonWeightImperial(u8 windowId, u16 species, u8 x, u8 y)
 {
     u16 weight;
     u32 lbs;
@@ -2943,8 +3066,13 @@ static u8 DexScreen_DrawMonDexPage(bool8 justRegistered)
     DexScreen_PrintMonDexNo(sPokedexScreenData->windowIds[1], FONT_SMALL, sPokedexScreenData->dexSpecies, 0, 8);
     DexScreen_AddTextPrinterParameterized(sPokedexScreenData->windowIds[1], FONT_NORMAL, gSpeciesNames[sPokedexScreenData->dexSpecies], 28, 8, 0);
     DexScreen_PrintMonCategory(sPokedexScreenData->windowIds[1], sPokedexScreenData->dexSpecies, 0, 24);
-    DexScreen_PrintMonHeight(sPokedexScreenData->windowIds[1], sPokedexScreenData->dexSpecies, 0, 36);
-    DexScreen_PrintMonWeight(sPokedexScreenData->windowIds[1], sPokedexScreenData->dexSpecies, 0, 48);
+    #ifdef UNITS_METRIC
+    DexScreen_PrintMonHeightMetric(sPokedexScreenData->windowIds[1], sPokedexScreenData->dexSpecies, 0, 36);
+    DexScreen_PrintMonWeightMetric(sPokedexScreenData->windowIds[1], sPokedexScreenData->dexSpecies, 0, 48);
+    #elif UNITS_IMPERIAL
+    DexScreen_PrintMonHeightImperial(sPokedexScreenData->windowIds[1], sPokedexScreenData->dexSpecies, 0, 36);
+    DexScreen_PrintMonWeightImperial(sPokedexScreenData->windowIds[1], sPokedexScreenData->dexSpecies, 0, 48);
+    #endif
     DexScreen_DrawMonFootprint(sPokedexScreenData->windowIds[1], sPokedexScreenData->dexSpecies, 88, 40);
     PutWindowTilemap(sPokedexScreenData->windowIds[1]);
     CopyWindowToVram(sPokedexScreenData->windowIds[1], COPYWIN_GFX);
